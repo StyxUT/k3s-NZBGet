@@ -25,10 +25,10 @@ spec:
             capabilities:
               add: ["NET_ADMIN"]
           env:
-            #- name: NZBGET_USER
-            #  value: ""
-            #- name: NZBGET_PASSWORD
-            #  value: ""
+#            - name: NZBGET_USER
+#              value: "nzb"
+#            - name: NZBGET_PASSWORD
+#              value: "nzb"
             - name: PUID
               value: "333"
             - name: PGID
