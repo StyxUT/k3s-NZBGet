@@ -1,0 +1,79 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: nzbget
+  name: nzbget
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nzbget
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: nzbget
+    spec:
+      containers:
+        - name: nzbget
+          image: lscr.io/linuxserver/nzbget:latest 
+          imagePullPolicy: Always
+          securityContext:
+            capabilities:
+              add: ["NET_ADMIN"]
+          env:
+            #- name: NZBGET_USER
+            #  value: ""
+            #- name: NZBGET_PASSWORD
+            #  value: ""
+            - name: PUID
+              value: "333"
+            - name: PGID
+              value: "321"
+            - name: UMASK_SET
+              value: "002"
+            - name: TZ
+              value: "America/Denver"
+          ports:
+            - name: http
+              containerPort: 6789 
+              protocol: TCP
+          volumeMounts:
+            - name: k8s-pv02
+              mountPath: /config
+              subPath: nzbget/config
+            - name: k8s-pv02
+              mountPath: /downloads
+              subPath: nzbget/downloads
+            - name: data
+              mountPath: /data/usenet
+              subPath: usenet 
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: vpn
+                operator: In
+                values:
+                - required
+            - matchExpressions:
+              - key: tpu
+                operator: NotIn
+                values:
+                - "true"
+      tolerations:
+      - key: "vpn"
+        operator: "Equal"
+        value: "required"
+        effect: "NoSchedule"
+      volumes:
+        - name: k8s-pv02
+          persistentVolumeClaim:
+            claimName: synology-k8s-pv02
+        - name: data
+          persistentVolumeClaim:
+            claimName: synology-data
